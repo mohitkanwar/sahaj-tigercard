@@ -1,5 +1,7 @@
 package nepu.metro.tigercard.faircalculationengine;
 
+import nepu.metro.tigercard.faircalculationengine.model.Journey;
+
 import java.util.List;
 
 public class FairCalculationEngine {
