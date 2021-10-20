@@ -10,7 +10,7 @@ public class FairCalculationEngineTest {
     @Test
     public void engine_should_except_list_of_journies(){
         FairCalculationEngine engine = new FairCalculationEngine();
-        List<Journey> journies = new ArrayList<>();
-        engine.calculate(journies);
+        List<Journey> journeys = new ArrayList<>();
+        engine.calculate(journeys);
     }
 }
