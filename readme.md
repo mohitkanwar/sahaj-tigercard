@@ -9,3 +9,9 @@ Test driven development, since it is more agile and helps keep the code cleaner 
 
 ## Requirements
 1. The system should accept a list of journeys and return the fair applicable
+   1. The journey would contain the following fields
+      1. date-time
+      2. from-zone
+      3. to-zone
+   2. The zone would contain the following fields
+      1. name
