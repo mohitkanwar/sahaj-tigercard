@@ -49,4 +49,21 @@ public class FairCalculationEngineTest {
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("85"), totalfair);
     }
+
+    @Test
+    public void multiple_journey_with_daily_capping_single_zone_1() {
+        List<Journey> journeys = new ArrayList<>();
+        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
+        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
+        LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
+        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
+        LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
+        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_9_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_10_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_11_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_12_PM, Zone.Z1(), Zone.Z1()));
+        BigDecimal totalfair = engine.calculate(journeys);
+        assertEquals(new BigDecimal("100"), totalfair);
+    }
 }
