@@ -1,12 +1,11 @@
 package nepu.metro.tigercard.faircalculationengine;
 
 import nepu.metro.tigercard.faircalculationengine.model.Journey;
-import nepu.metro.tigercard.faircalculationengine.service.DailyCappingLimitService;
+import nepu.metro.tigercard.faircalculationengine.service.CappingLimitService;
 import nepu.metro.tigercard.faircalculationengine.service.JourneyFairCalculatorService;
 import nepu.metro.tigercard.faircalculationengine.service.PeakHourService;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -17,8 +16,8 @@ import java.util.stream.Collectors;
 public class FairCalculationEngine {
     private final JourneyFairCalculatorService journeyFairCalculatorService = new JourneyFairCalculatorService();
     private final PeakHourService peakHourService = new PeakHourService();
-    private final DailyCappingLimitService dailyCappingLimitService = new DailyCappingLimitService();
-    private final BigDecimal weeksCap = new BigDecimal("600");
+    private final CappingLimitService cappingLimitService = new CappingLimitService();
+
     public BigDecimal calculate(List<Journey> journeys) {
         if (journeys == null || journeys.size() == 0) {
             return BigDecimal.ZERO;
@@ -37,11 +36,12 @@ public class FairCalculationEngine {
                                         this.peakHourService.isPeak(journey.dateTime())))
                         .reduce(BigDecimal.ZERO,(dailySum,journeyFair)->{
                             BigDecimal uncapped = dailySum.add(journeyFair);
-                            BigDecimal dailyLimit = dailyCappingLimitService.getDailyCap(listOfJourneyForDay.getValue());
+                            BigDecimal dailyLimit = cappingLimitService.getCapAmount(listOfJourneyForDay.getValue(), CappingLimitService.LimitMode.DAILY);
                             return uncapped.compareTo(dailyLimit)>0?dailyLimit:uncapped;
                         })));
         List<LocalDate> sortedDates = cappedPerDayFair.keySet().stream().sorted().collect(Collectors.toList());
         Map<Integer, BigDecimal> weekCappedFair = new HashMap<>();
+        Map<Integer, List<Journey>> weekJourneys = new HashMap<>();
         for (LocalDate localDate : sortedDates) {
             long daysSinceStart = ChronoUnit.DAYS.between(localDate, sortedDates.get(0));
             int week = (int) (daysSinceStart/7);
@@ -49,8 +49,11 @@ public class FairCalculationEngine {
             if(weeksFair==null){
                 weeksFair = cappedPerDayFair.get(localDate);
                 weekCappedFair.put(week,weeksFair);
+                weekJourneys.put(week,datedJourneies.get(localDate));
             }else {
                 weeksFair = weeksFair.add(cappedPerDayFair.get(localDate));
+                weekJourneys.get(week).addAll(datedJourneies.get(localDate));
+                BigDecimal weeksCap = cappingLimitService.getCapAmount(weekJourneys.get(week), CappingLimitService.LimitMode.WEEKLY);
                 weeksFair = weeksFair.compareTo(weeksCap)>0?weeksCap:weeksFair;
                 weekCappedFair.put(week,weeksFair);
             }

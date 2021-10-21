@@ -6,15 +6,14 @@ import nepu.metro.tigercard.faircalculationengine.model.ZoneFromTo;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DailyCappingLimitServiceTest {
-    private final DailyCappingLimitService dailyCappingLimitService = new DailyCappingLimitService();
+class CappingLimitServiceTest {
+    private final CappingLimitService cappingLimitService = new CappingLimitService();
 
     @Test
     void getDailyCap_z1_z1() {
@@ -23,7 +22,7 @@ class DailyCappingLimitServiceTest {
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        BigDecimal cap = dailyCappingLimitService.getDailyCap(journeys);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys, CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("100"), cap);
     }
 
@@ -34,7 +33,7 @@ class DailyCappingLimitServiceTest {
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        BigDecimal cap = dailyCappingLimitService.getDailyCap(journeys);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys, CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("80"), cap);
     }
 
@@ -45,7 +44,7 @@ class DailyCappingLimitServiceTest {
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z1(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        BigDecimal cap = dailyCappingLimitService.getDailyCap(journeys);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys,CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("120"), cap);
     }
 
@@ -54,7 +53,7 @@ class DailyCappingLimitServiceTest {
         List<Journey> journeys = new ArrayList<>();
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        BigDecimal cap = dailyCappingLimitService.getDailyCap(journeys);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys,CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("100"), cap);
     }
     @Test
@@ -62,7 +61,7 @@ class DailyCappingLimitServiceTest {
         List<Journey> journeys = new ArrayList<>();
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        BigDecimal cap = dailyCappingLimitService.getDailyCap(journeys);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys,CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("120"), cap);
     }
 }
