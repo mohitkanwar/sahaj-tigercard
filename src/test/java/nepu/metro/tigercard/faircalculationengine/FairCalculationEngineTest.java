@@ -27,11 +27,24 @@ public class FairCalculationEngineTest {
     }
 
     @Test
-    public void z1_z1_peak_30(){
+    public void z1_z1_peak_30_single(){
         List<Journey> journeys = new ArrayList<>();
         LocalDateTime monday_8_AM = LocalDateTime.of(2021,10,25,8,0,0);
-        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z2()));
+        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("30"),totalfair);
+    }
+
+    @Test
+    public void multiple_journey_without_capping(){
+        List<Journey> journeys = new ArrayList<>();
+        LocalDateTime monday_8_AM = LocalDateTime.of(2021,10,25,8,0,0);
+        LocalDateTime monday_9_AM = LocalDateTime.of(2021,10,25,9,0,0);
+        LocalDateTime monday_11_AM = LocalDateTime.of(2021,10,25,11,0,0);
+        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_9_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_11_AM, Zone.Z1(), Zone.Z1()));
+        BigDecimal totalfair = engine.calculate(journeys);
+        assertEquals(new BigDecimal("85"),totalfair);
     }
 }

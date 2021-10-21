@@ -2,21 +2,25 @@ package nepu.metro.tigercard.faircalculationengine;
 
 import nepu.metro.tigercard.faircalculationengine.model.Journey;
 import nepu.metro.tigercard.faircalculationengine.model.Zone;
+import nepu.metro.tigercard.faircalculationengine.service.JourneyFairCalculatorService;
+import nepu.metro.tigercard.faircalculationengine.service.PeakHourService;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public class FairCalculationEngine {
+    private JourneyFairCalculatorService journeyFairCalculatorService = new JourneyFairCalculatorService();
+    private PeakHourService peakHourService = new PeakHourService();
     public BigDecimal calculate(List<Journey> journeys) {
         if(journeys == null || journeys.size()==0){
             return BigDecimal.ZERO;
         }
         BigDecimal totalFair = BigDecimal.ZERO;
-        journeys.forEach( journey -> {
-            //boolean isPeak = journey.dateTime();
-            Zone fromZone = journey.fromZone();
-            Zone toZone = journey.toZone();
-        });
+        for(Journey journey:journeys){
+            totalFair = totalFair.add(
+                    this.journeyFairCalculatorService.getFair(journey.fromZone(), journey.toZone(), this.peakHourService.isPeak(journey.dateTime()))
+            );
+        }
         return totalFair;
     }
 }
