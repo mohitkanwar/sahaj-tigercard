@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class JourneyTest {
 
@@ -18,7 +18,7 @@ class JourneyTest {
         // intentional delay to test if object is being returned or LocalDateTime.now(),
         // in case it runs in less than 1 ns
         TimeUnit.NANOSECONDS.sleep(1);
-        LocalDateTime dateTimeFromObject =journey.dateTime();
-        assertEquals(dateTime,dateTimeFromObject);
+        LocalDateTime dateTimeFromObject = journey.dateTime();
+        assertEquals(dateTime, dateTimeFromObject);
     }
 }

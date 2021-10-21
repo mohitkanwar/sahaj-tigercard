@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PeakHourTest {
 
@@ -16,8 +16,8 @@ class PeakHourTest {
         // intentional delay to test if object is being returned or LocalDateTime.now(),
         // in case it runs in less than 1 ns
         TimeUnit.NANOSECONDS.sleep(1);
-        assertEquals(dateTime.getDayOfWeek(),peakHour.dayOfWeek());
-        assertEquals(dateTime.toLocalTime(),peakHour.startTime());
-        assertEquals(dateTime.toLocalTime(),peakHour.endTime());
+        assertEquals(dateTime.getDayOfWeek(), peakHour.dayOfWeek());
+        assertEquals(dateTime.toLocalTime(), peakHour.startTime());
+        assertEquals(dateTime.toLocalTime(), peakHour.endTime());
     }
 }

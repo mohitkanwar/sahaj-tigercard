@@ -15,36 +15,38 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FairCalculationEngineTest {
     private FairCalculationEngine engine;
+
     @BeforeEach
-    void reset_before_each_test(){
+    void reset_before_each_test() {
         engine = new FairCalculationEngine();
     }
+
     @Test
-    public void no_journeys_no_fair(){
+    public void no_journeys_no_fair() {
         List<Journey> journeys = new ArrayList<>();
         BigDecimal totalfair = engine.calculate(journeys);
-        assertEquals(BigDecimal.ZERO,totalfair);
+        assertEquals(BigDecimal.ZERO, totalfair);
     }
 
     @Test
-    public void z1_z1_peak_30_single(){
+    public void z1_z1_peak_30_single() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021,10,25,8,0,0);
+        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
         journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
         BigDecimal totalfair = engine.calculate(journeys);
-        assertEquals(new BigDecimal("30"),totalfair);
+        assertEquals(new BigDecimal("30"), totalfair);
     }
 
     @Test
-    public void multiple_journey_without_capping(){
+    public void multiple_journey_without_capping() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021,10,25,8,0,0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021,10,25,9,0,0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021,10,25,11,0,0);
+        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
+        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
+        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
         journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
         journeys.add(new Journey(monday_9_AM, Zone.Z1(), Zone.Z1()));
         journeys.add(new Journey(monday_11_AM, Zone.Z1(), Zone.Z1()));
         BigDecimal totalfair = engine.calculate(journeys);
-        assertEquals(new BigDecimal("85"),totalfair);
+        assertEquals(new BigDecimal("85"), totalfair);
     }
 }
