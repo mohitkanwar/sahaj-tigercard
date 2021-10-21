@@ -2,6 +2,7 @@ package nepu.metro.tigercard.faircalculationengine;
 
 import nepu.metro.tigercard.faircalculationengine.model.Journey;
 import nepu.metro.tigercard.faircalculationengine.model.Zone;
+import nepu.metro.tigercard.faircalculationengine.model.ZoneFromTo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ public class FairCalculationEngineTest {
     public void z1_z1_peak_30_single() {
         List<Journey> journeys = new ArrayList<>();
         LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_8_AM,  new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("30"), totalfair);
     }
@@ -43,9 +44,9 @@ public class FairCalculationEngineTest {
         LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
         LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
         LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
-        journeys.add(new Journey(monday_9_AM, Zone.Z1(), Zone.Z1()));
-        journeys.add(new Journey(monday_11_AM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_11_AM,new ZoneFromTo( Zone.Z1(), Zone.Z1())));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("85"), totalfair);
     }
@@ -58,11 +59,11 @@ public class FairCalculationEngineTest {
         LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
         LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
         LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z1()));
-        journeys.add(new Journey(monday_9_AM, Zone.Z1(), Zone.Z1()));
-        journeys.add(new Journey(monday_10_AM, Zone.Z1(), Zone.Z1()));
-        journeys.add(new Journey(monday_11_AM, Zone.Z1(), Zone.Z1()));
-        journeys.add(new Journey(monday_12_PM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("100"), totalfair);
     }
@@ -75,11 +76,11 @@ public class FairCalculationEngineTest {
         LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
         LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
         LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, Zone.Z2(), Zone.Z2()));
-        journeys.add(new Journey(monday_9_AM, Zone.Z2(), Zone.Z2()));
-        journeys.add(new Journey(monday_10_AM, Zone.Z2(), Zone.Z2()));
-        journeys.add(new Journey(monday_11_AM, Zone.Z2(), Zone.Z2()));
-        journeys.add(new Journey(monday_12_PM, Zone.Z2(), Zone.Z2()));
+        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
+        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
+        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
+        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
+        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("80"), totalfair);
     }
@@ -93,11 +94,11 @@ public class FairCalculationEngineTest {
         LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
         LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
         LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, Zone.Z1(), Zone.Z2()));
-        journeys.add(new Journey(monday_9_AM, Zone.Z2(), Zone.Z1()));
-        journeys.add(new Journey(monday_10_AM, Zone.Z2(), Zone.Z2()));
-        journeys.add(new Journey(monday_11_AM, Zone.Z2(), Zone.Z2()));
-        journeys.add(new Journey(monday_12_PM, Zone.Z1(), Zone.Z1()));
+        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
+        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
+        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
+        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
+        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("120"), totalfair);
     }

@@ -22,7 +22,7 @@ public class DailyCappingLimitService {
     public BigDecimal getDailyCap(List<Journey> journeys){
         BigDecimal cap = BigDecimal.ZERO;
         for (Journey journey : journeys) {
-            BigDecimal capForJourney = this.dailyCaps.get(new ZoneFromTo(journey.fromZone(), journey.toZone()));
+            BigDecimal capForJourney = this.dailyCaps.get(new ZoneFromTo(journey.zones().fromZone(),  journey.zones().toZone()));
             cap = capForJourney.compareTo(cap) > 0 ? capForJourney : cap;
         }
         return cap;

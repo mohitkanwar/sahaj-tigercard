@@ -28,8 +28,8 @@ public class FairCalculationEngine {
                 .collect(Collectors.toMap(Map.Entry::getKey,
                 listOfJourneyForDay-> listOfJourneyForDay.getValue().stream()
                         .map(journey->
-                                this.journeyFairCalculatorService.getFair(journey.fromZone(),
-                                        journey.toZone(),
+                                this.journeyFairCalculatorService.getFair(journey.zones().fromZone(),
+                                        journey.zones().toZone(),
                                         this.peakHourService.isPeak(journey.dateTime())))
                         .reduce(BigDecimal.ZERO,(dailySum,journeyFair)->{
                             BigDecimal uncapped = dailySum.add(journeyFair);
