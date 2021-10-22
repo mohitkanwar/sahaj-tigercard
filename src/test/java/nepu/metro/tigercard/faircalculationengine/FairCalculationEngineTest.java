@@ -33,7 +33,7 @@ public class FairCalculationEngineTest {
     public void z1_z1_peak_30_single() {
         List<Journey> journeys = new ArrayList<>();
         LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        journeys.add(new Journey(monday_8_AM,  new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("30"), totalfair);
     }
@@ -46,7 +46,7 @@ public class FairCalculationEngineTest {
         LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
         journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_11_AM,new ZoneFromTo( Zone.Z1(), Zone.Z1())));
+        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("85"), totalfair);
     }
@@ -215,7 +215,7 @@ public class FairCalculationEngineTest {
         LocalDateTime thursday_8_AM = LocalDateTime.of(2021, 10, 21, 8, 0, 0);
         LocalDateTime thursday_9_AM = LocalDateTime.of(2021, 10, 21, 9, 0, 0);
         LocalDateTime thursday_10_AM = LocalDateTime.of(2021, 10, 21, 10, 0, 0);
-        LocalDateTime thursday_11_AM = LocalDateTime.of(2021, 10, 21,11, 0, 0);
+        LocalDateTime thursday_11_AM = LocalDateTime.of(2021, 10, 21, 11, 0, 0);
         LocalDateTime thursday_12_PM = LocalDateTime.of(2021, 10, 21, 12, 0, 0);
         journeys.add(new Journey(thursday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
         journeys.add(new Journey(thursday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
@@ -355,7 +355,7 @@ public class FairCalculationEngineTest {
         LocalDateTime thursday_8_AM = LocalDateTime.of(2021, 10, 21, 8, 0, 0);
         LocalDateTime thursday_9_AM = LocalDateTime.of(2021, 10, 21, 9, 0, 0);
         LocalDateTime thursday_10_AM = LocalDateTime.of(2021, 10, 21, 10, 0, 0);
-        LocalDateTime thursday_11_AM = LocalDateTime.of(2021, 10, 21,11, 0, 0);
+        LocalDateTime thursday_11_AM = LocalDateTime.of(2021, 10, 21, 11, 0, 0);
         LocalDateTime thursday_12_PM = LocalDateTime.of(2021, 10, 21, 12, 0, 0);
         journeys.add(new Journey(thursday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         journeys.add(new Journey(thursday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));

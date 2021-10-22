@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CappingLimitServiceTest {
     private final CappingLimitService cappingLimitService = new CappingLimitService();
@@ -44,7 +44,7 @@ class CappingLimitServiceTest {
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z1(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        BigDecimal cap = cappingLimitService.getCapAmount(journeys,CappingLimitService.LimitMode.DAILY);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys, CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("120"), cap);
     }
 
@@ -53,15 +53,16 @@ class CappingLimitServiceTest {
         List<Journey> journeys = new ArrayList<>();
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z1(), Zone.Z1())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        BigDecimal cap = cappingLimitService.getCapAmount(journeys,CappingLimitService.LimitMode.DAILY);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys, CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("100"), cap);
     }
+
     @Test
     void getDailyCap_z2_z1_z2_mixed() {
         List<Journey> journeys = new ArrayList<>();
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z2())));
         journeys.add(new Journey(LocalDateTime.now(), new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        BigDecimal cap = cappingLimitService.getCapAmount(journeys,CappingLimitService.LimitMode.DAILY);
+        BigDecimal cap = cappingLimitService.getCapAmount(journeys, CappingLimitService.LimitMode.DAILY);
         assertEquals(new BigDecimal("120"), cap);
     }
 }
