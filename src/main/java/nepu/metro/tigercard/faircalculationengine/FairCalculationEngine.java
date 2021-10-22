@@ -1,5 +1,6 @@
 package nepu.metro.tigercard.faircalculationengine;
 
+import nepu.metro.tigercard.faircalculationengine.comparator.JourneyDateTimeComparator;
 import nepu.metro.tigercard.faircalculationengine.model.Journey;
 import nepu.metro.tigercard.faircalculationengine.service.CappingLimitService;
 import nepu.metro.tigercard.faircalculationengine.service.JourneyFairCalculatorService;
@@ -19,12 +20,12 @@ public class FairCalculationEngine {
     private final CappingLimitService cappingLimitService = new CappingLimitService();
 
     public BigDecimal calculate(List<Journey> journeys) {
-        if (journeys == null || journeys.size() == 0) {
-            return BigDecimal.ZERO;
-        }
         BigDecimal totalFair = BigDecimal.ZERO;
+        if (journeys == null || journeys.size() == 0) {
+            return totalFair;
+        }
 
-        Map<LocalDate, List<Journey>> datedJourneies = journeys.stream().sorted()
+        Map<LocalDate, List<Journey>> datedJourneies = journeys.stream().sorted(new JourneyDateTimeComparator())
                 .collect(Collectors.groupingBy(Journey::getDate));
 
         Map<LocalDate, BigDecimal> cappedPerDayFair = datedJourneies.entrySet().stream()
