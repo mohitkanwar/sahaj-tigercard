@@ -15,7 +15,7 @@ class JourneyTest {
         LocalDateTime dateTime = LocalDateTime.now();
         Zone fromZone = new Zone("zone 1", 0);
         Zone toZone = new Zone("zone 2", 2);
-        Journey journey = new Journey(dateTime, new ZoneFromTo(fromZone, toZone));
+        Journey journey = new Journey(dateTime, new Stations(fromZone, toZone));
         // intentional delay to test if object is being returned or LocalDateTime.now(),
         // in case it runs in less than 1 ns
         TimeUnit.NANOSECONDS.sleep(1);
@@ -27,7 +27,7 @@ class JourneyTest {
 
     @Test
     void get_date_should_return_date_only() {
-        Journey journey = new Journey(LocalDateTime.of(2021, 1, 1, 1, 1), new ZoneFromTo(Zone.Z1(), Zone.Z1()));
+        Journey journey = new Journey(LocalDateTime.of(2021, 1, 1, 1, 1), new Stations(Zone.Z1(), Zone.Z1()));
         assertEquals(LocalDate.of(2021, 1, 1), journey.getDate());
     }
 }

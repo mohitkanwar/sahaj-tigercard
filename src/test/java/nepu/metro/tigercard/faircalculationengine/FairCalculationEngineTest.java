@@ -2,12 +2,14 @@ package nepu.metro.tigercard.faircalculationengine;
 
 import nepu.metro.tigercard.faircalculationengine.model.Journey;
 import nepu.metro.tigercard.faircalculationengine.model.Zone;
-import nepu.metro.tigercard.faircalculationengine.model.ZoneFromTo;
+import nepu.metro.tigercard.faircalculationengine.model.Stations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,62 @@ public class FairCalculationEngineTest {
         engine = new FairCalculationEngine();
     }
 
+    //data populators
+    private void addJourney(List<Journey> journeys, LocalDateTime dateTime, Zone start, Zone end) {
+        LocalDateTime day_8_AM = LocalDateTime.of(dateTime.getYear(), dateTime.getMonth(), dateTime.getDayOfMonth(), dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond());
+        journeys.add(new Journey(day_8_AM, new Stations(start, end)));
+    }
+    private void addJourneySingleZone(List<Journey> journeys, LocalDateTime dateTime, Zone zone) {
+        addJourney(journeys,dateTime,zone,zone);
+    }
+    private void addJourneyZone1(List<Journey> journeys, LocalDateTime dateTime) {
+        addJourneySingleZone(journeys,dateTime,Zone.Z1());
+    }
+    private void addJourneyZone2(List<Journey> journeys, LocalDateTime dateTime) {
+        addJourneySingleZone(journeys,dateTime,Zone.Z2());
+    }
+    private LocalDate getWeekDay(int offsetDay){
+        return LocalDate.of(2021,10,4+offsetDay);
+    }
+    private LocalTime getDayTime(int hourOffset){
+        return LocalTime.of(hourOffset,0,0);
+    }
+    private void addPeakJourney_Zone1(List<Journey> journeys, int offsetDay, int offsetHour) {
+        LocalDate monday = getWeekDay(offsetDay);
+        LocalTime peak = getDayTime(offsetHour);
+        addJourneyZone1(journeys, LocalDateTime.of(monday.getYear(),monday.getMonth(),monday.getDayOfMonth(),peak.getHour(),peak.getMinute(),peak.getSecond()));
+    }
+    private void addPeakJourney_Zone2(List<Journey> journeys,int offsetDay, int offsetHour) {
+        LocalDate monday = getWeekDay(offsetDay);
+        LocalTime peak = getDayTime(offsetHour);
+        addJourneyZone2(journeys, LocalDateTime.of(monday.getYear(),monday.getMonth(),monday.getDayOfMonth(),peak.getHour(),peak.getMinute(),peak.getSecond()));
+    }
+    private void addPeakJourney_Zone1_Zone2(List<Journey> journeys,int offsetDay, int offsetHour) {
+        LocalDate monday = getWeekDay(offsetDay);
+        LocalTime peak = getDayTime(offsetHour);
+        addJourney(journeys, LocalDateTime.of(monday.getYear(),monday.getMonth(),monday.getDayOfMonth(),peak.getHour(),peak.getMinute(),peak.getSecond()),Zone.Z1(),Zone.Z2());
+    }
+
+    private void populateHourly_Zone1(List<Journey> journeys, int hourOffset, int hoursCount) {
+        for(int hoursInstance=0;hoursInstance<hoursCount;hoursInstance++){
+            addPeakJourney_Zone1(journeys, 0, hourOffset+hoursInstance);
+        }
+    }
+    private void populateHourly_Zone2(List<Journey> journeys, int hourOffset, int hoursCount) {
+        for(int hoursInstance=0;hoursInstance<hoursCount;hoursInstance++){
+            addPeakJourney_Zone2(journeys, 0, hourOffset+hoursInstance);
+        }
+    }
+    private void populateHourly(List<Journey> journeys, int offsetDay,int hourOffset, int hoursCount) {
+        for(int hoursInstance=0;hoursInstance<hoursCount;hoursInstance++){
+            addPeakJourney_Zone1_Zone2(journeys, offsetDay,hourOffset+hoursInstance);
+        }
+    }
+    private void populateWeeklyWithCap(List<Journey> journeys, int weeks) {
+        for(int day=0;day<7*weeks;day++){
+            populateHourly(journeys,day,7,5);
+        }
+    }
     @Test
     public void no_journeys_no_fair() {
         List<Journey> journeys = new ArrayList<>();
@@ -32,38 +90,26 @@ public class FairCalculationEngineTest {
     @Test
     public void z1_z1_peak_30_single() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        populateHourly_Zone1(journeys, 7,1);
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("30"), totalfair);
     }
 
+
+
+
     @Test
     public void multiple_journey_without_capping() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        populateHourly_Zone1(journeys, 7,3);
         BigDecimal totalfair = engine.calculate(journeys);
-        assertEquals(new BigDecimal("85"), totalfair);
+        assertEquals(new BigDecimal("90"), totalfair);
     }
 
     @Test
     public void multiple_journey_with_daily_capping_single_zone_1() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
-        LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        populateHourly_Zone1(journeys, 7,4);
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("100"), totalfair);
     }
@@ -71,107 +117,26 @@ public class FairCalculationEngineTest {
     @Test
     public void multiple_journey_with_daily_capping_single_zone_2() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
-        LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
+        populateHourly_Zone2(journeys, 7,4);
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("80"), totalfair);
     }
 
 
     @Test
-    public void multiple_journey_with_daily_capping_multiple_zone_2() {
+    public void multiple_journey_with_daily_capping_multiple_zone() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
-        LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        populateHourly(journeys, 0,7,4);
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("120"), totalfair);
     }
 
+
+
     @Test
-    public void multiple_journey_with_weekly_capping_multiple_zone_2() {
+    public void multiple_journey_with_weekly_capping_multiple_zones() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
-        LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime tuesday_8_AM = LocalDateTime.of(2021, 10, 26, 8, 0, 0);
-        LocalDateTime tuesday_9_AM = LocalDateTime.of(2021, 10, 26, 9, 0, 0);
-        LocalDateTime tuesday_10_AM = LocalDateTime.of(2021, 10, 26, 10, 0, 0);
-        LocalDateTime tuesday_11_AM = LocalDateTime.of(2021, 10, 26, 11, 0, 0);
-        LocalDateTime tuesday_12_PM = LocalDateTime.of(2021, 10, 26, 12, 0, 0);
-        journeys.add(new Journey(tuesday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(tuesday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime wednesday_8_AM = LocalDateTime.of(2021, 10, 27, 8, 0, 0);
-        LocalDateTime wednesday_9_AM = LocalDateTime.of(2021, 10, 27, 9, 0, 0);
-        LocalDateTime wednesday_10_AM = LocalDateTime.of(2021, 10, 27, 10, 0, 0);
-        LocalDateTime wednesday_11_AM = LocalDateTime.of(2021, 10, 27, 11, 0, 0);
-        LocalDateTime wednesday_12_PM = LocalDateTime.of(2021, 10, 27, 12, 0, 0);
-        journeys.add(new Journey(wednesday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(wednesday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime thursday_8_AM = LocalDateTime.of(2021, 10, 28, 8, 0, 0);
-        LocalDateTime thursday_9_AM = LocalDateTime.of(2021, 10, 28, 9, 0, 0);
-        LocalDateTime thursday_10_AM = LocalDateTime.of(2021, 10, 28, 10, 0, 0);
-        LocalDateTime thursday_11_AM = LocalDateTime.of(2021, 10, 28, 11, 0, 0);
-        LocalDateTime thursday_12_PM = LocalDateTime.of(2021, 10, 28, 12, 0, 0);
-        journeys.add(new Journey(thursday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(thursday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(thursday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime friday_8_AM = LocalDateTime.of(2021, 10, 29, 8, 0, 0);
-        LocalDateTime friday_9_AM = LocalDateTime.of(2021, 10, 29, 9, 0, 0);
-        LocalDateTime friday_10_AM = LocalDateTime.of(2021, 10, 29, 10, 0, 0);
-        LocalDateTime friday_11_AM = LocalDateTime.of(2021, 10, 29, 11, 0, 0);
-        LocalDateTime friday_12_PM = LocalDateTime.of(2021, 10, 29, 12, 0, 0);
-        journeys.add(new Journey(friday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(friday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(friday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime saturday_8_AM = LocalDateTime.of(2021, 10, 30, 8, 0, 0);
-        LocalDateTime saturday_9_AM = LocalDateTime.of(2021, 10, 30, 9, 0, 0);
-        LocalDateTime saturday_10_AM = LocalDateTime.of(2021, 10, 30, 10, 0, 0);
-        LocalDateTime saturday_11_AM = LocalDateTime.of(2021, 10, 30, 11, 0, 0);
-        LocalDateTime saturday_12_PM = LocalDateTime.of(2021, 10, 30, 12, 0, 0);
-        journeys.add(new Journey(saturday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(saturday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(saturday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
+        populateWeeklyWithCap(journeys, 1);
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("600"), totalfair);
     }
@@ -179,137 +144,7 @@ public class FairCalculationEngineTest {
     @Test
     public void multiple_journey_with_weekly_capping_multiple_zone_2_multiweeks() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 18, 8, 0, 0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 18, 9, 0, 0);
-        LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 18, 10, 0, 0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 18, 11, 0, 0);
-        LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 18, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime tuesday_8_AM = LocalDateTime.of(2021, 10, 19, 8, 0, 0);
-        LocalDateTime tuesday_9_AM = LocalDateTime.of(2021, 10, 19, 9, 0, 0);
-        LocalDateTime tuesday_10_AM = LocalDateTime.of(2021, 10, 19, 10, 0, 0);
-        LocalDateTime tuesday_11_AM = LocalDateTime.of(2021, 10, 19, 11, 0, 0);
-        LocalDateTime tuesday_12_PM = LocalDateTime.of(2021, 10, 19, 12, 0, 0);
-        journeys.add(new Journey(tuesday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(tuesday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime wednesday_8_AM = LocalDateTime.of(2021, 10, 20, 8, 0, 0);
-        LocalDateTime wednesday_9_AM = LocalDateTime.of(2021, 10, 20, 9, 0, 0);
-        LocalDateTime wednesday_10_AM = LocalDateTime.of(2021, 10, 20, 10, 0, 0);
-        LocalDateTime wednesday_11_AM = LocalDateTime.of(2021, 10, 20, 11, 0, 0);
-        LocalDateTime wednesday_12_PM = LocalDateTime.of(2021, 10, 20, 12, 0, 0);
-        journeys.add(new Journey(wednesday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(wednesday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime thursday_8_AM = LocalDateTime.of(2021, 10, 21, 8, 0, 0);
-        LocalDateTime thursday_9_AM = LocalDateTime.of(2021, 10, 21, 9, 0, 0);
-        LocalDateTime thursday_10_AM = LocalDateTime.of(2021, 10, 21, 10, 0, 0);
-        LocalDateTime thursday_11_AM = LocalDateTime.of(2021, 10, 21, 11, 0, 0);
-        LocalDateTime thursday_12_PM = LocalDateTime.of(2021, 10, 21, 12, 0, 0);
-        journeys.add(new Journey(thursday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(thursday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(thursday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime friday_8_AM = LocalDateTime.of(2021, 10, 22, 8, 0, 0);
-        LocalDateTime friday_9_AM = LocalDateTime.of(2021, 10, 22, 9, 0, 0);
-        LocalDateTime friday_10_AM = LocalDateTime.of(2021, 10, 22, 10, 0, 0);
-        LocalDateTime friday_11_AM = LocalDateTime.of(2021, 10, 22, 11, 0, 0);
-        LocalDateTime friday_12_PM = LocalDateTime.of(2021, 10, 22, 12, 0, 0);
-        journeys.add(new Journey(friday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(friday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(friday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime saturday_8_AM = LocalDateTime.of(2021, 10, 23, 8, 0, 0);
-        LocalDateTime saturday_9_AM = LocalDateTime.of(2021, 10, 23, 9, 0, 0);
-        LocalDateTime saturday_10_AM = LocalDateTime.of(2021, 10, 23, 10, 0, 0);
-        LocalDateTime saturday_11_AM = LocalDateTime.of(2021, 10, 23, 11, 0, 0);
-        LocalDateTime saturday_12_PM = LocalDateTime.of(2021, 10, 23, 12, 0, 0);
-        journeys.add(new Journey(saturday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(saturday_9_AM, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(saturday_10_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_11_AM, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime monday_8_AM_week2 = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        LocalDateTime monday_9_AM_week2 = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
-        LocalDateTime monday_10_AM_week2 = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
-        LocalDateTime monday_11_AM_week2 = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        LocalDateTime monday_12_PM_week2 = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(monday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(monday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_12_PM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime tuesday_8_AM_week2 = LocalDateTime.of(2021, 10, 26, 8, 0, 0);
-        LocalDateTime tuesday_9_AM_week2 = LocalDateTime.of(2021, 10, 26, 9, 0, 0);
-        LocalDateTime tuesday_10_AM_week2 = LocalDateTime.of(2021, 10, 26, 10, 0, 0);
-        LocalDateTime tuesday_11_AM_week2 = LocalDateTime.of(2021, 10, 26, 11, 0, 0);
-        LocalDateTime tuesday_12_PM_week2 = LocalDateTime.of(2021, 10, 26, 12, 0, 0);
-        journeys.add(new Journey(tuesday_8_AM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(tuesday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_12_PM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime wednesday_8_AM_week2 = LocalDateTime.of(2021, 10, 27, 8, 0, 0);
-        LocalDateTime wednesday_9_AM_week2 = LocalDateTime.of(2021, 10, 27, 9, 0, 0);
-        LocalDateTime wednesday_10_AM_week2 = LocalDateTime.of(2021, 10, 27, 10, 0, 0);
-        LocalDateTime wednesday_11_AM_week2 = LocalDateTime.of(2021, 10, 27, 11, 0, 0);
-        LocalDateTime wednesday_12_PM_week2 = LocalDateTime.of(2021, 10, 27, 12, 0, 0);
-        journeys.add(new Journey(wednesday_8_AM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(wednesday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_12_PM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime thursday_8_AM_week2 = LocalDateTime.of(2021, 10, 28, 8, 0, 0);
-        LocalDateTime thursday_9_AM_week2 = LocalDateTime.of(2021, 10, 28, 9, 0, 0);
-        LocalDateTime thursday_10_AM_week2 = LocalDateTime.of(2021, 10, 28, 10, 0, 0);
-        LocalDateTime thursday_11_AM_week2 = LocalDateTime.of(2021, 10, 28, 11, 0, 0);
-        LocalDateTime thursday_12_PM_week2 = LocalDateTime.of(2021, 10, 28, 12, 0, 0);
-        journeys.add(new Journey(thursday_8_AM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(thursday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(thursday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_12_PM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime friday_8_AM_week2 = LocalDateTime.of(2021, 10, 29, 8, 0, 0);
-        LocalDateTime friday_9_AM_week2 = LocalDateTime.of(2021, 10, 29, 9, 0, 0);
-        LocalDateTime friday_10_AM_week2 = LocalDateTime.of(2021, 10, 29, 10, 0, 0);
-        LocalDateTime friday_11_AM_week2 = LocalDateTime.of(2021, 10, 29, 11, 0, 0);
-        LocalDateTime friday_12_PM_week2 = LocalDateTime.of(2021, 10, 29, 12, 0, 0);
-        journeys.add(new Journey(friday_8_AM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(friday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(friday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_12_PM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime saturday_8_AM_week2 = LocalDateTime.of(2021, 10, 30, 8, 0, 0);
-        LocalDateTime saturday_9_AM_week2 = LocalDateTime.of(2021, 10, 30, 9, 0, 0);
-        LocalDateTime saturday_10_AM_week2 = LocalDateTime.of(2021, 10, 30, 10, 0, 0);
-        LocalDateTime saturday_11_AM_week2 = LocalDateTime.of(2021, 10, 30, 11, 0, 0);
-        LocalDateTime saturday_12_PM_week2 = LocalDateTime.of(2021, 10, 30, 12, 0, 0);
-        journeys.add(new Journey(saturday_8_AM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z2())));
-        journeys.add(new Journey(saturday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z1())));
-        journeys.add(new Journey(saturday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_12_PM_week2, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
+        populateWeeklyWithCap(journeys, 2);
 
         BigDecimal totalfair = engine.calculate(journeys);
         assertEquals(new BigDecimal("1200"), totalfair);
@@ -317,141 +152,13 @@ public class FairCalculationEngineTest {
 
 
     @Test
-    public void weekly_capping_multiple_zone_2_multiweeks() {
+    public void weekly_capping_multiple_zone_2_multiweeks_with_incomplete_week() {
         List<Journey> journeys = new ArrayList<>();
-        LocalDateTime monday_8_AM = LocalDateTime.of(2021, 10, 18, 8, 0, 0);
-        LocalDateTime monday_9_AM = LocalDateTime.of(2021, 10, 18, 9, 0, 0);
-        LocalDateTime monday_10_AM = LocalDateTime.of(2021, 10, 18, 10, 0, 0);
-        LocalDateTime monday_11_AM = LocalDateTime.of(2021, 10, 18, 11, 0, 0);
-        LocalDateTime monday_12_PM = LocalDateTime.of(2021, 10, 18, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(monday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime tuesday_8_AM = LocalDateTime.of(2021, 10, 19, 8, 0, 0);
-        LocalDateTime tuesday_9_AM = LocalDateTime.of(2021, 10, 19, 9, 0, 0);
-        LocalDateTime tuesday_10_AM = LocalDateTime.of(2021, 10, 19, 10, 0, 0);
-        LocalDateTime tuesday_11_AM = LocalDateTime.of(2021, 10, 19, 11, 0, 0);
-        LocalDateTime tuesday_12_PM = LocalDateTime.of(2021, 10, 19, 12, 0, 0);
-        journeys.add(new Journey(tuesday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(tuesday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(tuesday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(tuesday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(tuesday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime wednesday_8_AM = LocalDateTime.of(2021, 10, 20, 8, 0, 0);
-        LocalDateTime wednesday_9_AM = LocalDateTime.of(2021, 10, 20, 9, 0, 0);
-        LocalDateTime wednesday_10_AM = LocalDateTime.of(2021, 10, 20, 10, 0, 0);
-        LocalDateTime wednesday_11_AM = LocalDateTime.of(2021, 10, 20, 11, 0, 0);
-        LocalDateTime wednesday_12_PM = LocalDateTime.of(2021, 10, 20, 12, 0, 0);
-        journeys.add(new Journey(wednesday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(wednesday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(wednesday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(wednesday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(wednesday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime thursday_8_AM = LocalDateTime.of(2021, 10, 21, 8, 0, 0);
-        LocalDateTime thursday_9_AM = LocalDateTime.of(2021, 10, 21, 9, 0, 0);
-        LocalDateTime thursday_10_AM = LocalDateTime.of(2021, 10, 21, 10, 0, 0);
-        LocalDateTime thursday_11_AM = LocalDateTime.of(2021, 10, 21, 11, 0, 0);
-        LocalDateTime thursday_12_PM = LocalDateTime.of(2021, 10, 21, 12, 0, 0);
-        journeys.add(new Journey(thursday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(thursday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(thursday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(thursday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(thursday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime friday_8_AM = LocalDateTime.of(2021, 10, 22, 8, 0, 0);
-        LocalDateTime friday_9_AM = LocalDateTime.of(2021, 10, 22, 9, 0, 0);
-        LocalDateTime friday_10_AM = LocalDateTime.of(2021, 10, 22, 10, 0, 0);
-        LocalDateTime friday_11_AM = LocalDateTime.of(2021, 10, 22, 11, 0, 0);
-        LocalDateTime friday_12_PM = LocalDateTime.of(2021, 10, 22, 12, 0, 0);
-        journeys.add(new Journey(friday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(friday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(friday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(friday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(friday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime saturday_8_AM = LocalDateTime.of(2021, 10, 23, 8, 0, 0);
-        LocalDateTime saturday_9_AM = LocalDateTime.of(2021, 10, 23, 9, 0, 0);
-        LocalDateTime saturday_10_AM = LocalDateTime.of(2021, 10, 23, 10, 0, 0);
-        LocalDateTime saturday_11_AM = LocalDateTime.of(2021, 10, 23, 11, 0, 0);
-        LocalDateTime saturday_12_PM = LocalDateTime.of(2021, 10, 23, 12, 0, 0);
-        journeys.add(new Journey(saturday_8_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(saturday_9_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(saturday_10_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(saturday_11_AM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-        journeys.add(new Journey(saturday_12_PM, new ZoneFromTo(Zone.Z1(), Zone.Z1())));
-
-        LocalDateTime monday_8_AM_week2 = LocalDateTime.of(2021, 10, 25, 8, 0, 0);
-        LocalDateTime monday_9_AM_week2 = LocalDateTime.of(2021, 10, 25, 9, 0, 0);
-        LocalDateTime monday_10_AM_week2 = LocalDateTime.of(2021, 10, 25, 10, 0, 0);
-        LocalDateTime monday_11_AM_week2 = LocalDateTime.of(2021, 10, 25, 11, 0, 0);
-        LocalDateTime monday_12_PM_week2 = LocalDateTime.of(2021, 10, 25, 12, 0, 0);
-        journeys.add(new Journey(monday_8_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(monday_12_PM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-
-        LocalDateTime tuesday_8_AM_week2 = LocalDateTime.of(2021, 10, 26, 8, 0, 0);
-        LocalDateTime tuesday_9_AM_week2 = LocalDateTime.of(2021, 10, 26, 9, 0, 0);
-        LocalDateTime tuesday_10_AM_week2 = LocalDateTime.of(2021, 10, 26, 10, 0, 0);
-        LocalDateTime tuesday_11_AM_week2 = LocalDateTime.of(2021, 10, 26, 11, 0, 0);
-        LocalDateTime tuesday_12_PM_week2 = LocalDateTime.of(2021, 10, 26, 12, 0, 0);
-        journeys.add(new Journey(tuesday_8_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(tuesday_12_PM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-
-        LocalDateTime wednesday_8_AM_week2 = LocalDateTime.of(2021, 10, 27, 8, 0, 0);
-        LocalDateTime wednesday_9_AM_week2 = LocalDateTime.of(2021, 10, 27, 9, 0, 0);
-        LocalDateTime wednesday_10_AM_week2 = LocalDateTime.of(2021, 10, 27, 10, 0, 0);
-        LocalDateTime wednesday_11_AM_week2 = LocalDateTime.of(2021, 10, 27, 11, 0, 0);
-        LocalDateTime wednesday_12_PM_week2 = LocalDateTime.of(2021, 10, 27, 12, 0, 0);
-        journeys.add(new Journey(wednesday_8_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(wednesday_12_PM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-
-        LocalDateTime thursday_8_AM_week2 = LocalDateTime.of(2021, 10, 28, 8, 0, 0);
-        LocalDateTime thursday_9_AM_week2 = LocalDateTime.of(2021, 10, 28, 9, 0, 0);
-        LocalDateTime thursday_10_AM_week2 = LocalDateTime.of(2021, 10, 28, 10, 0, 0);
-        LocalDateTime thursday_11_AM_week2 = LocalDateTime.of(2021, 10, 28, 11, 0, 0);
-        LocalDateTime thursday_12_PM_week2 = LocalDateTime.of(2021, 10, 28, 12, 0, 0);
-        journeys.add(new Journey(thursday_8_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(thursday_12_PM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-
-        LocalDateTime friday_8_AM_week2 = LocalDateTime.of(2021, 10, 29, 8, 0, 0);
-        LocalDateTime friday_9_AM_week2 = LocalDateTime.of(2021, 10, 29, 9, 0, 0);
-        LocalDateTime friday_10_AM_week2 = LocalDateTime.of(2021, 10, 29, 10, 0, 0);
-        LocalDateTime friday_11_AM_week2 = LocalDateTime.of(2021, 10, 29, 11, 0, 0);
-        LocalDateTime friday_12_PM_week2 = LocalDateTime.of(2021, 10, 29, 12, 0, 0);
-        journeys.add(new Journey(friday_8_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(friday_12_PM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-
-        LocalDateTime saturday_8_AM_week2 = LocalDateTime.of(2021, 10, 30, 8, 0, 0);
-        LocalDateTime saturday_9_AM_week2 = LocalDateTime.of(2021, 10, 30, 9, 0, 0);
-        LocalDateTime saturday_10_AM_week2 = LocalDateTime.of(2021, 10, 30, 10, 0, 0);
-        LocalDateTime saturday_11_AM_week2 = LocalDateTime.of(2021, 10, 30, 11, 0, 0);
-        LocalDateTime saturday_12_PM_week2 = LocalDateTime.of(2021, 10, 30, 12, 0, 0);
-        journeys.add(new Journey(saturday_8_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_9_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_10_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_11_AM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-        journeys.add(new Journey(saturday_12_PM_week2, new ZoneFromTo(Zone.Z2(), Zone.Z2())));
-
+        //Two weeks capped
+        populateWeeklyWithCap(journeys, 2);
+        // one day capped
+        populateHourly(journeys, 21,7, 5);
         BigDecimal totalfair = engine.calculate(journeys);
-        assertEquals(new BigDecimal("900"), totalfair);
+        assertEquals(new BigDecimal("1320"), totalfair);
     }
 }

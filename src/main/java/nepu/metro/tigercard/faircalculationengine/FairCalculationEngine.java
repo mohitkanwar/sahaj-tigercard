@@ -9,6 +9,7 @@ import nepu.metro.tigercard.faircalculationengine.service.PeakHourService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,27 +25,26 @@ public class FairCalculationEngine {
         if (journeys == null || journeys.size() == 0) {
             return totalFair;
         }
-
-        Map<LocalDate, List<Journey>> datedJourneies = journeys.stream().sorted(new JourneyDateTimeComparator())
+        //input stream doesn't guarantee sorted-ness
+        journeys.sort(new JourneyDateTimeComparator());
+        // group journeys by date, (independent of time of the day)
+        Map<LocalDate, List<Journey>> datedJourneies = journeys
+                .stream()
                 .collect(Collectors.groupingBy(Journey::getDate));
+        // cap per day fair
+        Map<LocalDate, BigDecimal> cappedPerDayFair = getCappedPerDateFair(datedJourneies);
+        // cap per week
+        Map<Integer, BigDecimal> weekCappedFair = getweeklyCappedFair(journeys, datedJourneies, cappedPerDayFair);
+        return weekCappedFair.values().stream().reduce(totalFair, BigDecimal::add);
+    }
 
-        Map<LocalDate, BigDecimal> cappedPerDayFair = datedJourneies.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        listOfJourneyForDay -> listOfJourneyForDay.getValue().stream()
-                                .map(journey ->
-                                        this.journeyFairCalculatorService.getFair(journey.zones().fromZone(),
-                                                journey.zones().toZone(),
-                                                this.peakHourService.isPeak(journey.dateTime())))
-                                .reduce(BigDecimal.ZERO, (dailySum, journeyFair) -> {
-                                    BigDecimal uncapped = dailySum.add(journeyFair);
-                                    BigDecimal dailyLimit = cappingLimitService.getCapAmount(listOfJourneyForDay.getValue(), CappingLimitService.LimitMode.DAILY);
-                                    return uncapped.compareTo(dailyLimit) > 0 ? dailyLimit : uncapped;
-                                })));
-        List<LocalDate> sortedDates = cappedPerDayFair.keySet().stream().sorted().collect(Collectors.toList());
+    private Map<Integer, BigDecimal> getweeklyCappedFair(List<Journey> journeys, Map<LocalDate, List<Journey>> datedJourneies, Map<LocalDate, BigDecimal> cappedPerDayFair) {
         Map<Integer, BigDecimal> weekCappedFair = new HashMap<>();
         Map<Integer, List<Journey>> weekJourneys = new HashMap<>();
-        for (LocalDate localDate : sortedDates) {
-            long daysSinceStart = ChronoUnit.DAYS.between(localDate, sortedDates.get(0));
+        for (LocalDate localDate : cappedPerDayFair.keySet()) {
+            // compare number of days elapsed since start. Earliest journey is the start.
+            long daysSinceStart = ChronoUnit.DAYS.between(localDate, journeys.get(0).getDate());
+            // calculate week
             int week = (int) (daysSinceStart / 7);
             BigDecimal weeksFair = weekCappedFair.get(week);
             if (weeksFair == null) {
@@ -60,8 +60,24 @@ public class FairCalculationEngine {
             }
 
         }
-        totalFair = weekCappedFair.values().stream().reduce(totalFair, BigDecimal::add);
-        return totalFair;
+        return weekCappedFair;
+    }
+
+    private Map<LocalDate, BigDecimal> getCappedPerDateFair(Map<LocalDate, List<Journey>> datedJourneies) {
+        return datedJourneies.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        listOfJourneyForDay -> listOfJourneyForDay.getValue().stream()
+                                .map(journey ->
+                                        this.journeyFairCalculatorService.getFair(
+                                                journey.stations().startStationZone(),
+                                                journey.stations().endStationZone(),
+                                                this.peakHourService.isPeak(journey.dateTime())))
+                                .reduce(BigDecimal.ZERO, (dailySum, journeyFair) -> {
+                                    BigDecimal uncapped = dailySum.add(journeyFair);
+                                    BigDecimal dailyLimit = cappingLimitService
+                                            .getCapAmount(listOfJourneyForDay.getValue(), CappingLimitService.LimitMode.DAILY);
+                                    return uncapped.compareTo(dailyLimit) > 0 ? dailyLimit : uncapped;
+                                })));
     }
 
 
