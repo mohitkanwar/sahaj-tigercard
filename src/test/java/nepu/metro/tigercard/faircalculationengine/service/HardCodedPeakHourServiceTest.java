@@ -14,9 +14,9 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PeakHourServiceTest {
+class HardCodedPeakHourServiceTest {
 
-    private PeakHourService peakHourService;
+    private HardCodedPeakHourService peakHourService;
 
     static Stream<Arguments> weekdayPeakhoursboundary() {
         return Stream.of(
@@ -154,7 +154,7 @@ class PeakHourServiceTest {
 
     @BeforeEach
     void setUp() {
-        peakHourService = new PeakHourService();
+        peakHourService = new HardCodedPeakHourService();
     }
 
     @ParameterizedTest

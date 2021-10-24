@@ -3,7 +3,10 @@ package nepu.metro.tigercard.faircalculationengine;
 import nepu.metro.tigercard.faircalculationengine.comparator.JourneyDateTimeComparator;
 import nepu.metro.tigercard.faircalculationengine.model.Journey;
 import nepu.metro.tigercard.faircalculationengine.service.CappingLimitService;
+import nepu.metro.tigercard.faircalculationengine.service.HardCodedCappingLimitService;
+import nepu.metro.tigercard.faircalculationengine.service.HardCodedJourneyFairCalculatorService;
 import nepu.metro.tigercard.faircalculationengine.service.JourneyFairCalculatorService;
+import nepu.metro.tigercard.faircalculationengine.service.HardCodedPeakHourService;
 import nepu.metro.tigercard.faircalculationengine.service.PeakHourService;
 
 import java.math.BigDecimal;
@@ -15,9 +18,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FairCalculationEngine {
-    private final JourneyFairCalculatorService journeyFairCalculatorService = new JourneyFairCalculatorService();
-    private final PeakHourService peakHourService = new PeakHourService();
-    private final CappingLimitService cappingLimitService = new CappingLimitService();
+    private final JourneyFairCalculatorService journeyFairCalculatorService = new HardCodedJourneyFairCalculatorService();
+    private final PeakHourService peakHourService = new HardCodedPeakHourService();
+    private final CappingLimitService cappingLimitService = new HardCodedCappingLimitService();
 
     public BigDecimal calculate(List<Journey> journeys) {
         BigDecimal totalFair = BigDecimal.ZERO;
@@ -53,7 +56,7 @@ public class FairCalculationEngine {
             } else {
                 weeksFair = weeksFair.add(cappedPerDayFair.get(localDate));
                 weekJourneys.get(week).addAll(datedJourneies.get(localDate));
-                BigDecimal weeksCap = cappingLimitService.getCapAmount(weekJourneys.get(week), CappingLimitService.LimitMode.WEEKLY);
+                BigDecimal weeksCap = cappingLimitService.getCapAmount(weekJourneys.get(week), HardCodedCappingLimitService.LimitMode.WEEKLY);
                 weeksFair = weeksFair.compareTo(weeksCap) > 0 ? weeksCap : weeksFair;
                 weekCappedFair.put(week, weeksFair);
             }
@@ -74,7 +77,7 @@ public class FairCalculationEngine {
                                 .reduce(BigDecimal.ZERO, (dailySum, journeyFair) -> {
                                     BigDecimal uncapped = dailySum.add(journeyFair);
                                     BigDecimal dailyLimit = cappingLimitService
-                                            .getCapAmount(listOfJourneyForDay.getValue(), CappingLimitService.LimitMode.DAILY);
+                                            .getCapAmount(listOfJourneyForDay.getValue(), HardCodedCappingLimitService.LimitMode.DAILY);
                                     return uncapped.compareTo(dailyLimit) > 0 ? dailyLimit : uncapped;
                                 })));
     }

@@ -1,5 +1,6 @@
 package nepu.metro.tigercard.faircalculationengine.model;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class JourneyTest {
 
     @Test
+    @DisplayName("Journey Field Test")
     public void journey_should_have_dateTime_fromZone_toZone() throws InterruptedException {
         LocalDateTime dateTime = LocalDateTime.now();
         Zone fromZone = new Zone("zone 1", 0);
@@ -23,6 +25,7 @@ class JourneyTest {
 
 
     @Test
+    @DisplayName("Test to get correct date extracted for journey")
     void get_date_should_return_date_only() {
         Journey journey = new Journey(LocalDateTime.of(2021, 1, 1, 1, 1), new Stations(Zone.Z1(), Zone.Z1()));
         assertEquals(LocalDate.of(2021, 1, 1), journey.getDate());
