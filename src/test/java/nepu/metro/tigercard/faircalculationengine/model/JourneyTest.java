@@ -16,9 +16,6 @@ class JourneyTest {
         Zone fromZone = new Zone("zone 1", 0);
         Zone toZone = new Zone("zone 2", 2);
         Journey journey = new Journey(dateTime, new Stations(fromZone, toZone));
-        // intentional delay to test if object is being returned or LocalDateTime.now(),
-        // in case it runs in less than 1 ns
-        TimeUnit.NANOSECONDS.sleep(1);
         LocalDateTime dateTimeFromObject = journey.dateTime();
         assertEquals(dateTime, dateTimeFromObject);
     }
