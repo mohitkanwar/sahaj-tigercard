@@ -7,8 +7,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -62,95 +60,6 @@ class HardCodedPeakHourServiceTest {
         );
     }
 
-    static Stream<Arguments> weekdayPeakhours() {
-        List<LocalTime> timesList = new ArrayList<>();
-
-        LocalTime startTime = LocalTime.of(7, 0, 0);
-        LocalTime endTime = LocalTime.of(10, 30, 0);
-        while (startTime.isBefore(endTime)) {
-            timesList.add(startTime);
-            startTime = startTime.plusSeconds(1);
-        }
-
-        LocalTime eveningStartTime = LocalTime.of(17, 0, 0);
-        LocalTime eveningEndTime = LocalTime.of(20, 0, 0);
-        while (eveningStartTime.isBefore(eveningEndTime)) {
-            timesList.add(eveningStartTime);
-            eveningStartTime = eveningStartTime.plusSeconds(1);
-        }
-        return timesList.stream().map(Arguments::of);
-    }
-
-    static Stream<Arguments> weekdayNonPeakhours() {
-        List<LocalTime> timesList = new ArrayList<>();
-
-        LocalTime startTime = LocalTime.of(0, 0, 0);
-        LocalTime endTime = LocalTime.of(7, 0, 0);
-        while (startTime.isBefore(endTime)) {
-            timesList.add(startTime);
-            startTime = startTime.plusSeconds(1);
-        }
-
-        LocalTime eveningStartTime = LocalTime.of(10, 30, 1);
-        LocalTime eveningEndTime = LocalTime.of(17, 0, 0);
-        while (eveningStartTime.isBefore(eveningEndTime)) {
-            timesList.add(eveningStartTime);
-            eveningStartTime = eveningStartTime.plusSeconds(1);
-        }
-
-        LocalTime nightStartTime = LocalTime.of(20, 0, 1);
-        LocalTime nightEndTime = LocalTime.of(23, 59, 59);
-        while (nightStartTime.isBefore(nightEndTime)) {
-            timesList.add(nightStartTime);
-            nightStartTime = nightStartTime.plusSeconds(1);
-        }
-        return timesList.stream().map(Arguments::of);
-    }
-
-    static Stream<Arguments> weekenddayPeakhours() {
-        List<LocalTime> timesList = new ArrayList<>();
-
-        LocalTime startTime = LocalTime.of(9, 0, 0);
-        LocalTime endTime = LocalTime.of(11, 0, 0);
-        while (startTime.isBefore(endTime)) {
-            timesList.add(startTime);
-            startTime = startTime.plusSeconds(1);
-        }
-
-        LocalTime eveningStartTime = LocalTime.of(18, 0, 0);
-        LocalTime eveningEndTime = LocalTime.of(22, 0, 0);
-        while (eveningStartTime.isBefore(eveningEndTime)) {
-            timesList.add(eveningStartTime);
-            eveningStartTime = eveningStartTime.plusSeconds(1);
-        }
-        return timesList.stream().map(Arguments::of);
-    }
-
-    static Stream<Arguments> weekenddayNonPeakhours() {
-        List<LocalTime> timesList = new ArrayList<>();
-
-        LocalTime startTime = LocalTime.of(0, 0, 0);
-        LocalTime endTime = LocalTime.of(9, 0, 0);
-        while (startTime.isBefore(endTime)) {
-            timesList.add(startTime);
-            startTime = startTime.plusSeconds(1);
-        }
-
-        LocalTime eveningStartTime = LocalTime.of(11, 0, 1);
-        LocalTime eveningEndTime = LocalTime.of(18, 0, 0);
-        while (eveningStartTime.isBefore(eveningEndTime)) {
-            timesList.add(eveningStartTime);
-            eveningStartTime = eveningStartTime.plusSeconds(1);
-        }
-
-        LocalTime nightStartTime = LocalTime.of(22, 0, 1);
-        LocalTime nightEndTime = LocalTime.of(23, 59, 59);
-        while (nightStartTime.isBefore(nightEndTime)) {
-            timesList.add(nightStartTime);
-            nightStartTime = nightStartTime.plusSeconds(1);
-        }
-        return timesList.stream().map(Arguments::of);
-    }
 
     @BeforeEach
     void setUp() {

@@ -1,8 +1,8 @@
 package nepu.metro.tigercard.faircalculationengine.service;
 
 import nepu.metro.tigercard.faircalculationengine.model.Journey;
-import nepu.metro.tigercard.faircalculationengine.model.Zone;
 import nepu.metro.tigercard.faircalculationengine.model.Stations;
+import nepu.metro.tigercard.faircalculationengine.model.Zone;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

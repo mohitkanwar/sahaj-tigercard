@@ -5,8 +5,8 @@ import nepu.metro.tigercard.faircalculationengine.model.Journey;
 import nepu.metro.tigercard.faircalculationengine.service.CappingLimitService;
 import nepu.metro.tigercard.faircalculationengine.service.HardCodedCappingLimitService;
 import nepu.metro.tigercard.faircalculationengine.service.HardCodedJourneyFairCalculatorService;
-import nepu.metro.tigercard.faircalculationengine.service.JourneyFairCalculatorService;
 import nepu.metro.tigercard.faircalculationengine.service.HardCodedPeakHourService;
+import nepu.metro.tigercard.faircalculationengine.service.JourneyFairCalculatorService;
 import nepu.metro.tigercard.faircalculationengine.service.PeakHourService;
 
 import java.math.BigDecimal;

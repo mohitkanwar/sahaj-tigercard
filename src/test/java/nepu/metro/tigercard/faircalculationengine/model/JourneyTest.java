@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -21,7 +20,6 @@ class JourneyTest {
         LocalDateTime dateTimeFromObject = journey.dateTime();
         assertEquals(dateTime, dateTimeFromObject);
     }
-
 
 
     @Test

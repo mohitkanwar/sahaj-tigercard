@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HardCodedCappingLimitService implements CappingLimitService{
+public class HardCodedCappingLimitService implements CappingLimitService {
     private final Map<Stations, BigDecimal> dailyCaps = new HashMap<>();
     private final Map<Stations, BigDecimal> weeklyCaps = new HashMap<>();
 

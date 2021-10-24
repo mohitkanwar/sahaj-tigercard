@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface CappingLimitService {
-     BigDecimal getCapAmount(List<Journey> journeys, HardCodedCappingLimitService.LimitMode weekly);
+    BigDecimal getCapAmount(List<Journey> journeys, HardCodedCappingLimitService.LimitMode weekly);
 }
