@@ -1,8 +1,8 @@
 package nepu.metro.tigercard.faircalculationengine.service;
 
+import nepu.metro.tigercard.faircalculationengine.model.Stations;
 import nepu.metro.tigercard.faircalculationengine.model.ZonalFair;
 import nepu.metro.tigercard.faircalculationengine.model.Zone;
-import nepu.metro.tigercard.faircalculationengine.model.Stations;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
